@@ -2,11 +2,121 @@
 layout: default
 title: A github page test
 ---
-<body>
+<h1>Javascript Ray Tracer</h1>
+<canvas id=canvas width=400 height=400 style="border:1px black solid"></canvas>
+<script>
+
+var W=600;
+var H=400;
+
+
+
+canvas=document.getElementById("canvas");
+canvas.setAttribute("width",W);
+canvas.setAttribute("height",H);
+dc=canvas.getContext("2d");
+imageData=dc.getImageData(0,0,W,H);
+data=imageData.data;
+
+var T=0;
+function loop(){
+  T+=0.1;
+  rayTrace(T);
+  dc.putImageData(imageData,0,0);
+}
+
+
+function rayTrace(T){
+
+var spheres = [
+   {x:-1,y:Math.sin(T)*2,z:8,r:2,R:255,G:255,B:128}
+  ,{x:5,y:2+Math.cos(T)*4,z:20,r:4,R:128,G:255,B:255}
+  ,{x:0,y:18,z:10,r:16,R:255,G:128,B:255}
+];
+var numSpheres=3;
+var sp;
+
+var iterations=10;
+
+for(var x=0;x<W;x++)
+for(var y=0;y<H;y++){
   
-This is my first Github pages test. Hopefully should be displayed with a theme. layout:default
+  var R=255;
+  var G=255;
+  var B=255;
   
-<br>
-  With a bit of <font color=red>mark up</font>
-  
-</body>
+  //camera start=
+  var cx=0, cy=0, cz=0;
+  var Lx=(x-W/2)/H, Ly=(y-H/2)/H, Lz=1;
+  var L=Math.sqrt(Lx*Lx+Ly*Ly+Lz*Lz);
+  //var L=1;
+  Lx/=L;Ly/=L;Lz/=L;  //normalize
+  var found=-1;
+ 
+  for(var t=0;t<iterations;t++){
+    
+    found=-1;
+    
+    var dist=1E10;
+     
+    for(var s=0;s<numSpheres;s++){
+      
+    sp = spheres[s]; //doescopying structs cause slowdown?
+  	var Sx = cx-sp.x, Sy=cy-sp.y, Sz=cz-sp.z;
+  	var LS = Lx*Sx+Ly*Sy+Lz*Sz;
+    var SS = Sx*Sx+Sy*Sy+Sz*Sz;
+  	var BB = LS*LS - (SS - sp.r*sp.r );
+  	if( BB>0 ) {
+    		var d=(- LS - Math.sqrt(BB));  
+    		if( d>0 && d<dist) {
+      			found = s;
+      			dist = d;
+    		}
+      }
+        
+   }//s
+    
+   if(found>=0){
+    sp=spheres[found];
+    R=((R*sp.R)/255); 
+    G=((G*sp.G)/255); 
+    B=((B*sp.B)/255);
+    cx += Lx * dist;
+    cy += Ly * dist;
+    cz += Lz * dist;
+
+    //reflect
+    var Nx = cx-sp.x, Ny=cy-sp.y, Nz=cz-sp.z; 
+    var LN = (Lx*Nx+Ly*Ny+Lz*Nz)/(Nx*Nx+Ny*Ny+Nz*Nz);
+    Lx -= 2*Nx*LN; 
+    Ly -= 2*Ny*LN;
+    Lz -= 2*Nz*LN;
+   } else break;
+   
+  }//t
+  //colour of sky
+if(found==-1 ){
+  //var f0= (int)(Math.floor(Math.atan2(Lx,Lz)/3.14159f*10+100)+Math.floor((Ly+1)*5) ) %2;
+  var f0=(3+(-Lx-Ly-Lz))/4;
+  var f=f0;//MIN(1,MAX(0,f0)); //light
+  R= (R*f*0.9); 
+  G= (G*f*0.9);
+  B= (B*f);
+}else{
+  R=G=B=0;  
+}
+
+  var n=(x+y*W)*4;
+  data[n]=R;
+  data[n+1]=G;
+  data[n+2]=B;
+  data[n+3]=255;
+}//xy
+
+
+}
+
+setInterval(loop,50);
+
+</script>
+
