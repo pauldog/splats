@@ -4,11 +4,12 @@ title: A github page test
 ---
 <h1>Javascript Ray Tracer</h1>
 <canvas id=canvas width=400 height=400 style="border:1px black solid"></canvas>
+<br>
 This is calculated in real time.
 <script>
 
-var W=300;
-var H=200;
+var W = Math.min(600,window.innerWidth);
+var H= Math.floor(W*2/3);
 
 
 
