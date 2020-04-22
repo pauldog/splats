@@ -1,3 +1,5 @@
 theme: jekyll-theme-cayman
-github:
-  is_project_page: false
+title: Code Splats
+description: Just a little place for experiments
+show_downloads: false
+
