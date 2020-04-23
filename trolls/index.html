@@ -1,0 +1,125 @@
+<header>
+<title> Troll Box Game </title>
+</header>
+<h1>Box Game</h1>
+You must first run the server.py file to run locally, or change the URL to a cloud service.
+<img src="box.png" id=box style="display:none"/>
+<img src="troll.png" id=troll style="display:none"/>
+<canvas width=400 height=400 id=canvas></canvas>
+
+<script>
+canvas=document.getElementById("canvas");
+dc=canvas.getContext("2d");
+var URL="http://localhost:8008";
+
+var youX=5;
+var youY=5;
+
+function loadFile(filePath) {
+  var result = null;
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", filePath, false);
+  xmlhttp.send();
+  if (xmlhttp.status==200) {
+    result = xmlhttp.responseText;
+  }
+  return result;
+}
+
+function loadFilePost(filePath) {
+  var result = null;
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("POST", filePath, false);
+  xmlhttp.setRequestHeader("Content-Type", "application/json");
+  xmlhttp.send(`{"request": "data"}`);
+  if (xmlhttp.status==200) {
+    result = xmlhttp.responseText;
+  }
+  return result;
+}
+
+/*
+function update(){
+   var text = loadFile(URL);
+   data=JSON.parse(text);
+   numbers=eval(data["data"]);
+   document.getElementById("output").innerHTML=numbers.length;
+
+   for(var n=0;n<numbers.length;n++){
+     for(var m=0;m<numbers[n].length;m++){
+      //if(numbers[n][m]>0) dc.fillStyle="red"; else dc.fillStyle="blue";
+      var C=numbers[n][m];
+      dc.fillStyle=`rgb(${C},${C},${C})`;
+      dc.beginPath();
+      dc.rect(n*30,m*30,30,30);
+      dc.fill();
+      if(C<128 || true){ 
+         dc.drawImage(boxImage,n*32,m*32);
+      }
+     }
+   }   
+}
+*/
+
+function drawGrid(){
+   for(var n=0;n<grid.length;n++){
+     for(var m=0;m<grid[n].length;m++){
+      var C=grid[n][m];
+      dc.fillStyle=`rgb(${C*0.5},${C},${C*0.5})`;
+      dc.beginPath();
+      dc.rect(n*32,m*32,32,32);
+      dc.fill();
+      if(C<64){ 
+         dc.drawImage(boxImage,n*32,m*32);
+      }
+     }
+   }
+   dc.drawImage(trollImage,0,0,256,256,youX*32,youY*32,32,32);
+}
+
+function post(){
+   var text = loadFilePost(URL);
+   data=JSON.parse(text);
+   grid=eval(data["data"]);
+   //document.getElementById("output").innerHTML="result="+text;//numbers.length;
+
+   drawGrid();
+}
+window.onload=function(){
+    boxImage=document.getElementById("box");
+    trollImage=document.getElementById("troll");
+}
+
+function isFree(x){
+  return x>=64;
+}
+
+window.onkeydown=function(e){
+   var key = event.keyCode;
+   //alert(key);
+    var dx=0;
+    var dy=0;
+    var x=youX;
+    var y=youY;
+    if(key==39) dx=1;
+    if(key==37) dx=-1;
+    if(key==38) {dy=-1;e.preventDefault();}
+    if(key==40) {dy=1;e.preventDefault();}
+    if( isFree(grid[x+dx*2][y+dy*2]) || isFree(grid[x+dx][y+dy]) ){
+      
+      if(!isFree(grid[x+dx][y+dy])){
+        //move box
+        grid[x+dx*2][y+dy*2]=grid[x+dx][y+dy];
+        grid[x+dx][y+dy]=255;//clear
+      }
+      youX+=dx;youY+=dy;
+    }
+
+    drawGrid();
+}
+
+
+</script>
+
+<button onclick="post()">Update</button><br>
+<div id="output"></div>
